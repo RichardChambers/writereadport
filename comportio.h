@@ -36,6 +36,5 @@ public:
     DWORD   m_dwModem;
     DWORD   m_dwErrors;
     COMSTAT m_stat;
-
 	TCHAR   m_wszPortName[16];
 };

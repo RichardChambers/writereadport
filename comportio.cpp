@@ -5,9 +5,12 @@ comportio::comportio(void) :
 	m_dwError(0),
     m_hHandle(INVALID_HANDLE_VALUE),
 	m_dwBytesWritten(0),
-	m_dwBytesRead(0)
+	m_dwBytesRead(0),
+	m_dwModem(0),
+	m_dwErrors(0)
 {
-	memset (&m_wszPortName[0], 0, sizeof(m_wszPortName));
+	memset(&m_wszPortName[0], 0, sizeof(m_wszPortName));
+	memset(&m_stat, 0, sizeof(m_stat));
 }
 
 comportio::~comportio(void)

@@ -12,7 +12,7 @@
  *        is then written to the serial port followed by a read. Any data read is printed as ANSI characters
  *        to the standard output.
  *
- *   writereadport -t textfile portno
+ *   writereadport -f textfile portno
  *        writereadport opens the specified serial port with the default settings ahd the specified text file.
  *        The text file is read a text line at a time which is then written to the serial port and after each
  *        text line is written to the serial port a read on the serial port is done. Any data read is printed
@@ -23,7 +23,7 @@
  *        established and any text lines read from standard input are written to the serial port followed by a
  *        read. An data read is printed as ANSI characters to the standard output.
 
- *   writereadport -s 9600,8,n,1 otherarguments
+ *   writereadport -s "9600,8,n,1" otherarguments
  *        writereadport opens the specified serial port with the specified settings. The other arguments specified
  *        are then processed. Other arguments can be one of the variations of writereadport above.
  *
@@ -98,7 +98,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	TCHAR  *argFile = NULL;
-	TCHAR  *argSettings = _T("9600,8,n,1");
+	TCHAR  *argSettings = _T("9600,8,n,1");   // default settings for the Serial Communications Port, same format as -s command line option.
 	TCHAR  *argPortNo = argv[2];
 	TCHAR  *argString = argv[1];
 
@@ -121,10 +121,14 @@ int _tmain(int argc, _TCHAR* argv[])
 					i += 1;
 					break;
 
-				case _T('t'):
+				case _T('f'):
 					argString = NULL;
 					argFile = argv[i+1];
 					argPortNo = argv[i+2];
+					i += 1;
+					break;
+
+				default:
 					i += 1;
 					break;
 			}
@@ -214,7 +218,25 @@ int _tmain(int argc, _TCHAR* argv[])
 		fflush(stdout);
 	} else if (argFile) {
 		// file mode so open the input file and just keep reading lines of text until end of file
-	} else {
+		for (int i = 0; myWriteText[i] = argFile[i]; i++);
+		FILE *fp = fopen(myWriteText, "r");
+		if (fp) {
+			while (fgets(myWriteText, bufferSize, stdin)) {
+				int iLen = strlen(myWriteText);
+				if (iLen > 1) {
+					iLen--;        // remove the trailing newline or \n (0x0a) from fgets().
+					myCom.WriteCom(myWriteText, iLen);
+				}
+				myCom.WriteCom("\r", 1);      // write out a carriage return which is stripped by the fgets().
+				Sleep(50);
+				myCom.ReadCom(&myReadText[0], sizeof(myReadText));
+				printf("%s\n", myReadText);
+				fflush(stdout);
+			}
+			fclose(fp);
+		}
+	}
+	else {
 		// console mode so just keep reading lines of text from stdin until end of file
 		printf ("> ");
 		fflush(stdout);
