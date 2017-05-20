@@ -2,6 +2,24 @@
     CONSOLE APPLICATION : writereadport Project Overview
 ========================================================================
 
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+NO WARRANTY FOR SOURCE CODE
+
+ALL OF THE SOURCE CODE ON THIS WEB SITE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THIS SOURCE CODE SHOULD NOT BE RELIED UPON AS
+THE SOLE BASIS FOR SOLVING A PROBLEM WHOSE INCORRECT SOLUTION COULD RESULT IN INJURY TO
+PERSON OR PROPERTY. THE ENTIRE RISK AS TO THE RESULTS AND PERFORMANCE OF THIS SOURCE CODE
+IS ASSUMED BY THE USER. IN NO EVENT SHALL ANY OF THE CONTRIBUTORS TO THIS WEB SITE BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOURCE CODE.
+
+
 This console application is a command line utility for accessing and using a Serial
 Communication Port. The application has three different working modes:
  - single shot to send a text string to a Serial Port

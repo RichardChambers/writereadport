@@ -1,6 +1,29 @@
 // writereadport.cpp : Defines the entry point for the console application.
 //
 
+/*
+ * Contributors:
+ *    Richard Chambers, May 2017
+ *
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Anyone is free to copy, modify, publish, use, compile, sell, or
+ * distribute this software, either in source code form or as a compiled
+ * binary, for any purpose, commercial or non-commercial, and by any
+ * means.
+ *
+ * IN NO EVENT SHALL CONTRIBUTORS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+ * INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE
+ * USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF CONTRIBUTORS HAVE BEEN ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * CONTRIBUTORS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * THE SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS
+ * PROVIDED "AS IS". CONTRIBUTIRS HAVE NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
+ * UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+*/
+
 #include "stdafx.h"
 #include "comportio.h"
 
