@@ -11,6 +11,7 @@ comportio::comportio(void) :
 {
 	memset(&m_wszPortName[0], 0, sizeof(m_wszPortName));
 	memset(&m_stat, 0, sizeof(m_stat));
+	memset(&m_dcbStart, 0, sizeof(m_dcbStart));
 }
 
 comportio::~comportio(void)
@@ -26,7 +27,6 @@ comportio::~comportio(void)
 
 SHORT comportio::OpenCom(USHORT usPortId, const comportio::com_parms Protocol, USHORT usComBaud)
 {
-    DCB dcb = {0};
     COMMTIMEOUTS comTimer = {0};
     DWORD   dwCommMasks;
     DWORD   dwBaudRate;                 // baud rate
@@ -132,77 +132,79 @@ SHORT comportio::OpenCom(USHORT usPortId, const comportio::com_parms Protocol, U
 	}
 
     /* Get the default port setting information. */
-    GetCommState (m_hHandle, &dcb);
+    GetCommState (m_hHandle, &m_dcbStart);
+
+	m_dcbCurrent = m_dcbStart;
 
     /* set up no flow control as default */
-    dcb.BaudRate = dwBaudRate;              // Current baud 
-    dcb.fBinary = TRUE;                     // Binary mode; no EOF check 
-    dcb.fParity = (bParity != NOPARITY);    // Enable parity checking 
-    dcb.ByteSize = bByteSize;               // Number of bits/byte, 4-8
-    dcb.Parity = bParity;                   // 0-4=no,odd,even,mark,space 
-    dcb.StopBits = bStopBits;               // 0,1,2 = 1, 1.5, 2 
-    dcb.fDsrSensitivity = FALSE;            // DSR sensitivity 
+    m_dcbCurrent.BaudRate = dwBaudRate;              // Current baud 
+    m_dcbCurrent.fBinary = TRUE;                     // Binary mode; no EOF check 
+    m_dcbCurrent.fParity = (bParity != NOPARITY);    // Enable parity checking 
+    m_dcbCurrent.ByteSize = bByteSize;               // Number of bits/byte, 4-8
+    m_dcbCurrent.Parity = bParity;                   // 0-4=no,odd,even,mark,space 
+    m_dcbCurrent.StopBits = bStopBits;               // 0,1,2 = 1, 1.5, 2 
+    m_dcbCurrent.fDsrSensitivity = FALSE;            // DSR sensitivity 
 
 	switch (Protocol & (COM_BYTE_HANDSHAKE_XONOFF | COM_BYTE_HANDSHAKE_RTS | COM_BYTE_HANDSHAKE_CTS | COM_BYTE_HANDSHAKE_DTRDSR)) {
 		case COM_BYTE_HANDSHAKE_XONOFF:
-			dcb.fOutxCtsFlow = FALSE;         // No CTS output flow control 
-			dcb.fOutxDsrFlow = TRUE;          // No DSR output flow control for 7161
-			dcb.fTXContinueOnXoff = TRUE;     /* XOFF continues Tx */
-			dcb.fOutX             = TRUE;     /* XON/XOFF out flow control */
-			dcb.fInX              = TRUE;     /* XON/XOFF in flow control */
-			dcb.XonChar			  = 0x11;	  //The default value for this property is the ASCII/ANSI value 17
-			dcb.XoffChar		  = 0x13;	  //The default value for this property is the ASCII/ANSI value 19
+			m_dcbCurrent.fOutxCtsFlow = FALSE;         // No CTS output flow control 
+			m_dcbCurrent.fOutxDsrFlow = TRUE;          // No DSR output flow control for 7161
+			m_dcbCurrent.fTXContinueOnXoff = TRUE;     /* XOFF continues Tx */
+			m_dcbCurrent.fOutX             = TRUE;     /* XON/XOFF out flow control */
+			m_dcbCurrent.fInX              = TRUE;     /* XON/XOFF in flow control */
+			m_dcbCurrent.XonChar			  = 0x11;	  //The default value for this property is the ASCII/ANSI value 17
+			m_dcbCurrent.XoffChar		  = 0x13;	  //The default value for this property is the ASCII/ANSI value 19
 			break;
 
 		case (COM_BYTE_HANDSHAKE_RTS | COM_BYTE_HANDSHAKE_CTS):
 			/* set up RTS/CTS flow control by option in device configulation*/
-			dcb.fOutxCtsFlow = TRUE;          // CTS output flow control 
-			dcb.fOutxDsrFlow = FALSE;         // No DSR output flow control 
-			dcb.fTXContinueOnXoff = FALSE;    // XOFF continues Tx heee
-			dcb.fOutX = FALSE;                // No XON/XOFF out flow control 
-			dcb.fInX = FALSE;                 // No XON/XOFF in flow control 
-			dcb.fRtsControl = RTS_CONTROL_HANDSHAKE; 
-			dcb.fDsrSensitivity = FALSE;      // DSR sensitivity 
+			m_dcbCurrent.fOutxCtsFlow = TRUE;          // CTS output flow control 
+			m_dcbCurrent.fOutxDsrFlow = FALSE;         // No DSR output flow control 
+			m_dcbCurrent.fTXContinueOnXoff = FALSE;    // XOFF continues Tx heee
+			m_dcbCurrent.fOutX = FALSE;                // No XON/XOFF out flow control 
+			m_dcbCurrent.fInX = FALSE;                 // No XON/XOFF in flow control 
+			m_dcbCurrent.fRtsControl = RTS_CONTROL_HANDSHAKE; 
+			m_dcbCurrent.fDsrSensitivity = FALSE;      // DSR sensitivity 
 			break;
 
 		case COM_BYTE_HANDSHAKE_RTS:
 			//Set up RTS flow control by option in device configulation
-			dcb.fOutxCtsFlow = FALSE;         // no CTS output flow control 
-			dcb.fOutxDsrFlow = FALSE;         // No DSR output flow control 
-			dcb.fTXContinueOnXoff = FALSE;    // XOFF continues Tx 
-			dcb.fOutX = FALSE;                // No XON/XOFF out flow control 
-			dcb.fInX = FALSE;                 // No XON/XOFF in flow control 
-			dcb.fRtsControl = RTS_CONTROL_HANDSHAKE; 
-			dcb.fDsrSensitivity = FALSE;      // DSR sensitivity
+			m_dcbCurrent.fOutxCtsFlow = FALSE;         // no CTS output flow control 
+			m_dcbCurrent.fOutxDsrFlow = FALSE;         // No DSR output flow control 
+			m_dcbCurrent.fTXContinueOnXoff = FALSE;    // XOFF continues Tx 
+			m_dcbCurrent.fOutX = FALSE;                // No XON/XOFF out flow control 
+			m_dcbCurrent.fInX = FALSE;                 // No XON/XOFF in flow control 
+			m_dcbCurrent.fRtsControl = RTS_CONTROL_HANDSHAKE; 
+			m_dcbCurrent.fDsrSensitivity = FALSE;      // DSR sensitivity
 			break;
 
 		case COM_BYTE_HANDSHAKE_CTS:
 			//Set up CTS flow control by option in device configulation
-			dcb.fOutxCtsFlow = TRUE;          // CTS output flow control 
-			dcb.fOutxDsrFlow = FALSE;         // No DSR output flow control 
-			dcb.fTXContinueOnXoff = FALSE;    // XOFF continues Tx 
-			dcb.fOutX = FALSE;                // No XON/XOFF out flow control 
-			dcb.fInX = FALSE;                 // No XON/XOFF in flow control 
-			dcb.fRtsControl = FALSE; 
-			dcb.fDsrSensitivity = FALSE;      // DSR sensitivity
+			m_dcbCurrent.fOutxCtsFlow = TRUE;          // CTS output flow control 
+			m_dcbCurrent.fOutxDsrFlow = FALSE;         // No DSR output flow control 
+			m_dcbCurrent.fTXContinueOnXoff = FALSE;    // XOFF continues Tx 
+			m_dcbCurrent.fOutX = FALSE;                // No XON/XOFF out flow control 
+			m_dcbCurrent.fInX = FALSE;                 // No XON/XOFF in flow control 
+			m_dcbCurrent.fRtsControl = FALSE; 
+			m_dcbCurrent.fDsrSensitivity = FALSE;      // DSR sensitivity
 			break;
 
 		case COM_BYTE_HANDSHAKE_DTRDSR:
 			//Set up DSR/DTR flow control by option in device configulation
-			dcb.fOutxCtsFlow = FALSE;         // CTS output flow control 
-			dcb.fOutxDsrFlow = TRUE;          // DSR output flow control 
-			dcb.fDtrControl = DTR_CONTROL_HANDSHAKE; //
-			dcb.fTXContinueOnXoff = FALSE;    // XOFF continues Tx 
-			dcb.fOutX = FALSE;                // No XON/XOFF out flow control 
-			dcb.fInX = FALSE;                 // No XON/XOFF in flow control 
-			dcb.fRtsControl = FALSE; 
-			dcb.fDsrSensitivity = FALSE;      // DSR sensitivity
+			m_dcbCurrent.fOutxCtsFlow = FALSE;         // CTS output flow control 
+			m_dcbCurrent.fOutxDsrFlow = TRUE;          // DSR output flow control 
+			m_dcbCurrent.fDtrControl = DTR_CONTROL_HANDSHAKE; //
+			m_dcbCurrent.fTXContinueOnXoff = FALSE;    // XOFF continues Tx 
+			m_dcbCurrent.fOutX = FALSE;                // No XON/XOFF out flow control 
+			m_dcbCurrent.fInX = FALSE;                 // No XON/XOFF in flow control 
+			m_dcbCurrent.fRtsControl = FALSE; 
+			m_dcbCurrent.fDsrSensitivity = FALSE;      // DSR sensitivity
 			break;
 	}
 
     /* Configure the port according to the specifications of the DCB */
     /* structure. */
-    fResult = SetCommState (m_hHandle, &dcb);
+    fResult = SetCommState (m_hHandle, &m_dcbCurrent);
     if (!fResult) {
         /* Could not create the read thread. */
         m_dwError = GetLastError ();

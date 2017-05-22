@@ -82,7 +82,35 @@ static char * processBuffer (char *pCharBuff)
 				case '\\':
 					*pBuff = '\\';
 					break;
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+					// octal digit string. may be up to 3 octal digits (0-7).
+					if (std::isdigit(*pCharBuff) && *pCharBuff < '8') {
+						int x = (*pCharBuff & 0x0f);
+						pCharBuff++;
+						if (std::isdigit(*pCharBuff) && *pCharBuff < '8') {
+							x <<= 3;    // left shift one octal digit
+							x += (*pCharBuff & 0x07);
+							pCharBuff++;
+						}
+						if (std::isdigit(*pCharBuff) && *pCharBuff < '8') {
+							x <<= 3;    // left shift one octal digit
+							x += (*pCharBuff & 0x07);
+							pCharBuff++;
+						}
+						pCharBuff--;
+						*pBuff = x;
+					}
+					break;
+
 				case 'x':
+					// hex digit string. C standard says may be any length so use that.
 					pCharBuff++;
 					if (std::isxdigit(*pCharBuff)) {
 						int x = 0;
@@ -113,25 +141,43 @@ static char * processBuffer (char *pCharBuff)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	comportio  myCom;
-
 	if (argc < 3) {
-		printf ("Error in arguments. writereadport \"string\" portno\n");
+		// argv[0] = program name
+		// argv[1] = first arg, either a command flag (-s, -t, -c, etc) or text string
+		// argv[2] = second arg, either command flag argument or COM port number
+		// other argv[] elements depends on number of arguments specified.
+		printf ("writereadport - Invalid arguments. Must specify COM port number.\n");
+		printf ("  writereadport -t portno\n  writereadport text_string portno\n  writereadport -f file portno\n  writereadport -c portno\n");
+		printf ("\n  To set the COM port baud rate, etc. use the -s flag with argument\n    -s \"9600,8,n,1\"\n");
 		return 0;
 	}
+
+	comportio  myCom;
 
 	TCHAR  *argFile = NULL;
 	TCHAR  *argSettings = _T("9600,8,n,1");   // default settings for the Serial Communications Port, same format as -s command line option.
 	TCHAR  *argPortNo = argv[2];
 	TCHAR  *argString = argv[1];
+	bool   bPrintComSettings = false;
+	bool   bConsole = false;
 
-	if (argv[1][0] == _T('-')) {
+	if (argc > 1 && argv[1][0] == _T('-')) {
 		int i = 1;
-		while (argv[i][0] == _T('-')) {
+		while (i < argc && argv[i] && (argv[i][0] == _T('-') || argv[i][0] == _T('/'))) {
+			// both dash (-) and forward slash (/) are considered viable command flags
+			// in most Windows command line utilities
 			switch (argv[i][1]) {
 				case _T('s'):
-					argSettings = argv[i+1];
-					argString = argv[i+2];
+					if (i + 1 < argc - 1) {
+						// only one more argument and that must be the port number
+						argString = NULL;
+						argPortNo = argv[i+1];
+					} else {
+						// at least two more arguments so assume they are string and port number.
+						// if it is a command flag instead, that code will modify these.
+						argSettings = argv[i+1];
+						argString = argv[i+2];
+					}
 					argFile = NULL;
 					argPortNo = argv[i+3];
 					i += 2;
@@ -141,6 +187,22 @@ int _tmain(int argc, _TCHAR* argv[])
 					argString = NULL;
 					argFile = NULL;
 					argPortNo = argv[i+1];
+					bConsole = true;
+					i += 1;
+					break;
+
+				case _T('t'):
+					bPrintComSettings = true;
+					if (i + 1 < argc - 1) {
+						// at least two more arguments so assume they are string and port number.
+						// if it is a command flag instead, that code will modify these.
+						argString = argv[i+1];
+						argPortNo = argv[i+2];
+					} else {
+						// only one more argument and that must be the port number
+						argString = NULL;
+						argPortNo = argv[i+1];
+					}
 					i += 1;
 					break;
 
@@ -156,6 +218,11 @@ int _tmain(int argc, _TCHAR* argv[])
 					break;
 			}
 		}
+	}
+
+	if (argPortNo == NULL) {
+		printf ("Incorrect arguments. COM port number is invalid.\n");
+		return 0;
 	}
 
 
@@ -191,9 +258,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			case 2:
 				// third setting is the parity to use
 				switch (*argSettings) {
+					case _T('O'):
 					case _T('o'):
 						myParms = static_cast<comportio::com_parms> (comportio::COM_BYTE_ODD_PARITY | myParms);
 						break;
+					case _T('E'):
 					case _T('e'):
 						myParms = static_cast<comportio::com_parms> (comportio::COM_BYTE_EVEN_PARITY | myParms);
 						break;
@@ -222,13 +291,50 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 
+	int portno = _ttoi (argPortNo);
+
+	if (portno < 1) {
+		printf ("Incorrect arguments. COM port number is invalid.\n");
+		return 0;
+	}
+
 	const int  bufferSize = 2048;
 	char       myWriteText[bufferSize] = {0};
 	char       myReadText[bufferSize] = {0};
 
-	int portno = _ttoi (argPortNo);
-
 	myCom.OpenCom (portno, myParms, myBaud);
+
+	if (bPrintComSettings) {
+		char  sParity[24] = {0};
+
+		switch (myCom.m_dcbStart.Parity) {
+			case NOPARITY:
+				strcpy (sParity, "none");
+				break;
+			case ODDPARITY:
+				strcpy (sParity, "odd");
+				break;
+			case EVENPARITY:
+				strcpy (sParity, "even");
+				break;
+			case MARKPARITY:
+				strcpy (sParity, "mark");
+				break;
+			case SPACEPARITY:
+				strcpy (sParity, "space");
+				break;
+			default:
+				strcpy (sParity, "unknown");
+				break;
+		}
+
+		int iStopBits = myCom.m_dcbStart.StopBits;
+		if (myCom.m_dcbStart.StopBits < ONE5STOPBITS) iStopBits = ONE5STOPBITS;
+
+		printf ("Baud=%d\nDataBits=%d\nParity=%s\nStopBits=%d\n", myCom.m_dcbStart.BaudRate,
+			myCom.m_dcbStart.ByteSize, sParity, iStopBits);
+	}
+
 	if (argString) {
 		for (int i = 0; i < bufferSize && argString[i]; i++) {
 			myWriteText[i] = argString[i];
@@ -245,6 +351,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		FILE *fp = fopen(myWriteText, "r");
 		if (fp) {
 			while (fgets(myWriteText, bufferSize, stdin)) {
+				processBuffer (myWriteText);
 				int iLen = strlen(myWriteText);
 				if (iLen > 1) {
 					iLen--;        // remove the trailing newline or \n (0x0a) from fgets().
@@ -257,13 +364,15 @@ int _tmain(int argc, _TCHAR* argv[])
 				fflush(stdout);
 			}
 			fclose(fp);
+		} else {
+			printf ("File open failed file %s\n", myWriteText);
 		}
-	}
-	else {
+	} else if (bConsole) {
 		// console mode so just keep reading lines of text from stdin until end of file
 		printf ("> ");
 		fflush(stdout);
 		while (fgets (myWriteText, bufferSize, stdin)) {
+			processBuffer (myWriteText);
 			int iLen = strlen(myWriteText);
 			if (iLen > 1) {
 				iLen--;        // remove the trailing newline or \n (0x0a) from fgets().
