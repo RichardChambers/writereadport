@@ -336,6 +336,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	if (argString) {
+		// convert the argument string from UNICODE to char.
 		for (int i = 0; i < bufferSize && argString[i]; i++) {
 			myWriteText[i] = argString[i];
 		}
@@ -347,7 +348,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		fflush(stdout);
 	} else if (argFile) {
 		// file mode so open the input file and just keep reading lines of text until end of file
-		for (int i = 0; myWriteText[i] = argFile[i]; i++);
+		for (int i = 0; myWriteText[i] = argFile[i]; i++);  // convert file name from UNICODE to char.
 		FILE *fp = fopen(myWriteText, "r");
 		if (fp) {
 			while (fgets(myWriteText, bufferSize, stdin)) {
