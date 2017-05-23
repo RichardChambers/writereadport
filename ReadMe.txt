@@ -20,7 +20,7 @@ IS ASSUMED BY THE USER. IN NO EVENT SHALL ANY OF THE CONTRIBUTORS TO THIS WEB SI
 LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOURCE CODE.
 
 Build          Date          Description of Changes
-01.00.00.01    05/22/2017    Initial build for general use.
+01.00.00.01    05/22/2017    Initial build for general use. Provided via web site.
 
 
 Description of Utility
@@ -105,17 +105,29 @@ should add to or customize.
 Build History
 
 01.00.00.01    05/22/2017    Initial build for general use.
-This is the first release build provided to Amtrak for testing in their environment.
-The build was done with Visual Studio 2005.
-It contains initial support for the following command line arguments:
-  -s "9600,8,n,1" for setting the COM port paramters
-  -t  for printing the original COM port parameters to stdout
-  -c  for console mode that takes keyboard entry and sends to COM port
-  -f  for file mode opens a text file and sends the text lines to the COM port
-  "text to send" for a text string on the command line to send to the COM port
+
+  This is the first release build provided to Amtrak for testing in their environment.
+  The build was done with Visual Studio 2005.
+  It contains initial support for the following command line arguments:
+    -s "9600,8,n,1" for setting the COM port paramters
+    -t  for printing the original COM port parameters to stdout
+    -c  for console mode that takes keyboard entry and sends to COM port
+    -f  for file mode opens a text file and sends the text lines to the COM port
+    "text to send" for a text string on the command line to send to the COM port
   
-It also contains initial support for embedding special characters using many of the C standard
-escape sequences such as \r (carriage return character), \n (new line character),
-\t (tab character), \x12a (hex digits), \123 (octal digits).
+  It also contains initial support for embedding special characters using many of the C standard
+  escape sequences such as \r (carriage return character), \n (new line character),
+  \t (tab character), \x12a (hex digits), \123 (octal digits).
+
+  Testing of this build both with an NCR 7197 receipt printer as a kitchen printer and a
+  tablet with USB cellular modem shows that the console mode is working fine. Special
+  embedded characters were tested with the NCR 7197 to perform a paper cut using the
+  paper cut character sequence as a series of hex codes successfully.
+
+  Testing with the USB cellular modem used the AT+CFUN=0 command to turn off the modem
+  followed by using the AT+CFUN=1 command to turn on the modem. Used the ipconfig /all
+  command in a command shell to verify that the modem turned off, LAN media disabled, and
+  then turned back on, LAN media showed IP address and other LAN data.
+
 
 
